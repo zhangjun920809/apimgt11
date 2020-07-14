@@ -660,7 +660,8 @@ public class ApiMgtDAO {
             conn.setAutoCommit(false);
 
             String query = SQLConstants.ADD_SUBSCRIBER_SQL;
-            ps = conn.prepareStatement(query, new String[]{"subscriber_id"});
+           // ps = conn.prepareStatement(query, new String[]{"subscriber_id"});
+            ps = conn.prepareStatement(query,PreparedStatement.RETURN_GENERATED_KEYS);
 
             ps.setString(1, subscriber.getName());
             ps.setInt(2, subscriber.getTenantId());
@@ -1216,7 +1217,7 @@ public class ApiMgtDAO {
      * @param subscriber      subscriber
      * @param applicationName Application Name
      * @return Set<API>
-     * @throws APIManagementException if failed to get SubscribedAPIs
+     * @throws org.wso2.carbon.apimgt.api.APIManagementException if failed to get SubscribedAPIs
      */
     public Set<SubscribedAPI> getSubscribedAPIs(Subscriber subscriber, String applicationName, String groupingId)
             throws APIManagementException {
@@ -1493,7 +1494,7 @@ public class ApiMgtDAO {
      *
      * @param subscriber subscriber
      * @return Set<API>
-     * @throws APIManagementException if failed to get SubscribedAPIs
+     * @throws org.wso2.carbon.apimgt.api.APIManagementException if failed to get SubscribedAPIs
      */
     public Set<SubscribedAPI> getSubscribedAPIs(Subscriber subscriber, String groupingId)
             throws APIManagementException {
@@ -1957,7 +1958,7 @@ public class ApiMgtDAO {
      * Gets ConsumerKeys when given the Application ID.
      *
      * @param applicationId
-     * @return {@link Set} containing ConsumerKeys
+     * @return {@link java.util.Set} containing ConsumerKeys
      * @throws APIManagementException
      */
     public Set<String> getConsumerKeysOfApplication(int applicationId) throws APIManagementException {
@@ -2430,7 +2431,7 @@ public class ApiMgtDAO {
      * @param identifier    APIIdentifier
      * @param context       Context of the API
      * @param applicationId Application id
-     * @throws APIManagementException if failed to update subscriber
+     * @throws org.wso2.carbon.apimgt.api.APIManagementException if failed to update subscriber
      */
     public void updateSubscriptions(APIIdentifier identifier, String context, int applicationId, String subscriber)
             throws APIManagementException {
@@ -2443,7 +2444,7 @@ public class ApiMgtDAO {
      * @param identifier    APIIdentifier
      * @param subStatus     Subscription Status[BLOCKED/UNBLOCKED]
      * @param applicationId Application id
-     * @throws APIManagementException if failed to update subscriber
+     * @throws org.wso2.carbon.apimgt.api.APIManagementException if failed to update subscriber
      */
     public void updateSubscription(APIIdentifier identifier, String subStatus, int applicationId)
             throws APIManagementException {
@@ -2772,7 +2773,7 @@ public class ApiMgtDAO {
     /**
      * @param providerName Name of the provider
      * @return UserApplicationAPIUsage of given provider
-     * @throws APIManagementException if failed to get
+     * @throws org.wso2.carbon.apimgt.api.APIManagementException if failed to get
      *                                                           UserApplicationAPIUsage for given provider
      */
     public UserApplicationAPIUsage[] getAllAPIUsageByProvider(String providerName) throws APIManagementException {
@@ -2835,7 +2836,7 @@ public class ApiMgtDAO {
      * @param apiVersion Version of the API
      * @param provider Name of API creator
      * @return All subscriptions of a given API
-     * @throws APIManagementException
+     * @throws org.wso2.carbon.apimgt.api.APIManagementException
      */
     public List<SubscribedAPI> getSubscriptionsOfAPI(String apiName, String apiVersion, String provider)
             throws APIManagementException {
@@ -4120,7 +4121,7 @@ public class ApiMgtDAO {
      *
      * @param identifier APIIdentifier
      * @return Consumerkeys
-     * @throws APIManagementException if failed to get Applications for given subscriber.
+     * @throws org.wso2.carbon.apimgt.api.APIManagementException if failed to get Applications for given subscriber.
      */
     public String[] getConsumerKeys(APIIdentifier identifier) throws APIManagementException {
 
@@ -4853,6 +4854,7 @@ public class ApiMgtDAO {
         Connection connection = null;
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
+
         String query = SQLConstants.ADD_API_SQL;
         try {
             connection = APIMgtDBUtil.getConnection();
@@ -5224,9 +5226,10 @@ public class ApiMgtDAO {
                 } else {
                     is = null;
                 }
+                //log.info("getDatabaseProductName----------"+connection.getMetaData().getDatabaseProductName());
+                //ApiMgtDAO getDatabaseProductName----------DM DBMS
                 if (connection.getMetaData().getDriverName().contains("PostgreSQL") || connection.getMetaData()
-                        .getDatabaseProductName().contains("DB2") || connection.getMetaData()
-                        .getDatabaseProductName().contains("DM")) {
+                        .getDatabaseProductName().contains("DB2") || connection.getMetaData().getDatabaseProductName().contains("Dm")) {
                     if (uriTemplate.getMediationScript() != null) {
                         prepStmt.setBinaryStream(6, is, uriTemplate.getMediationScript().getBytes(Charset.defaultCharset()).length);
                     } else {
@@ -5248,6 +5251,7 @@ public class ApiMgtDAO {
                             }
                         }
                     }
+
                     scopePrepStmt.setInt(2, uriTemplate.getScope().getId());
                     scopePrepStmt.setInt(3, APIUtil.getTenantId(APIUtil.replaceEmailDomainBack(api.getId()
                             .getProviderName())));
@@ -5616,6 +5620,7 @@ public class ApiMgtDAO {
         try {
             connection = APIMgtDBUtil.getConnection();
             connection.setAutoCommit(false);
+
             apiId = getAPIID(api.getId(), connection);
             if (apiId == -1) {
                 //application addition has failed
@@ -5624,6 +5629,7 @@ public class ApiMgtDAO {
             prepStmt = connection.prepareStatement(deleteOldMappingsQuery);
             prepStmt.setInt(1, apiId);
             prepStmt.execute();
+
             addURLTemplates(apiId, api, connection);
 
             connection.commit();
@@ -5847,6 +5853,7 @@ public class ApiMgtDAO {
         PreparedStatement prepStmt = null;
 
         String previousDefaultVersion = getDefaultVersion(api.getId());
+
         String query = SQLConstants.UPDATE_API_SQL;
         try {
             connection = APIMgtDBUtil.getConnection();
@@ -5884,6 +5891,7 @@ public class ApiMgtDAO {
                 }
             }
             connection.commit();
+
             updateScopes(api, tenantId);
             updateURLTemplates(api);
         } catch (SQLException e) {
@@ -7775,7 +7783,7 @@ public class ApiMgtDAO {
      *
      * @param apiId - subscriber API ID
      * @param appId - application ID used to subscribe
-     * @throws SQLException - Letting the caller to handle the roll back
+     * @throws java.sql.SQLException - Letting the caller to handle the roll back
      */
     private void deleteSubscriptionByApiIDAndAppID(int apiId, int appId, Connection conn) throws SQLException {
         String deleteQuery = SQLConstants.REMOVE_SUBSCRIPTION_BY_APPLICATION_ID_SQL;
@@ -8721,7 +8729,8 @@ public class ApiMgtDAO {
         try {
             Statement st = conn.createStatement();
             String driverName = conn.getMetaData().getDriverName();
-            if (driverName.contains("MS SQL") || driverName.contains("Microsoft")) {
+            log.info("driverName-------"+driverName);
+                if (driverName.contains("MS SQL") || driverName.contains("Microsoft") || driverName.contains("Dm")) {
                 st.executeUpdate("SET IDENTITY_INSERT AM_API_THROTTLE_POLICY ON");
             }
             String dbProductName = conn.getMetaData().getDatabaseProductName();
@@ -8733,7 +8742,7 @@ public class ApiMgtDAO {
             policyStatement.setInt(13, policyId);
             int updatedRawCount = policyStatement.executeUpdate();
 
-            if (driverName.contains("MS SQL") || driverName.contains("Microsoft")) {
+            if (driverName.contains("MS SQL") || driverName.contains("Microsoft") || driverName.contains("Dm")) {
                 st.executeUpdate("SET IDENTITY_INSERT AM_API_THROTTLE_POLICY OFF");
             }
 
@@ -10059,7 +10068,7 @@ public class ApiMgtDAO {
             if (hasCustomAttrib) {
                 long lengthOfStream = policy.getCustomAttributes().length;
                 updateStatement.setBinaryStream(12, new ByteArrayInputStream(policy.getCustomAttributes()),
-                        lengthOfStream);
+                        (int)lengthOfStream);
                 if (!StringUtils.isBlank(policy.getPolicyName()) && policy.getTenantId() != -1) {
                     updateStatement.setString(13, policy.getPolicyName());
                     updateStatement.setInt(14, policy.getTenantId());
